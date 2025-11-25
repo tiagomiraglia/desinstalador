@@ -19,10 +19,8 @@ from PIL import Image, ImageTk
 import urllib.request
 import io
 
-# Configurações
 VIRUSTOTAL_API_KEY = "YOUR_VIRUSTOTAL_API_KEY_HERE"  # Substitua pela sua chave da API do VirusTotal
 
-# Verificar e elevar privilégios se necessário
 def is_admin():
     """Verifica se o script está rodando como administrador."""
     try:
@@ -39,10 +37,8 @@ def run_as_admin():
 
 run_as_admin()
 
-# Configurar logging
 logging.basicConfig(filename='desinstalador.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Funções auxiliares
 def calcular_hash_arquivo(caminho_arquivo):
     """Calcula o hash SHA256 de um arquivo."""
     try:
@@ -72,7 +68,6 @@ def verificar_virustotal(hash_arquivo):
     except Exception as e:
         return None, None
 
-# Funções de registro
 def obter_info_instalacao(programa_chave):
     """Obtém o local de instalação e string de desinstalação do programa do registro."""
     try:
@@ -189,7 +184,6 @@ def limpeza_registro(callback=None):
         logging.error(f"Erro na limpeza de registro: {e}")
         return 0
 
-# Funções de desinstalação
 def executar_desinstalador_oficial(uninstall_string):
     """Executa o desinstalador oficial do programa."""
     if uninstall_string:
@@ -199,7 +193,7 @@ def executar_desinstalador_oficial(uninstall_string):
                 guid_match = re.search(r'\{[A-F0-9-]+\}', uninstall_string, re.IGNORECASE)
                 if guid_match:
                     guid = guid_match.group(0)
-                    subprocess.run(['msiexec', '/x', guid, '/quiet', '/norestart'], check=True)
+                    subprocess.run(['msiexec', '/x', guid, '/quiet', '/norestart'], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
                     logging.info(f"Desinstalador MSI executado: {guid}")
                     print(f"Desinstalador MSI executado: {guid}")
                     return True
@@ -217,7 +211,7 @@ def executar_desinstalador_oficial(uninstall_string):
 def matar_processos(programa_nome):
     """Mata processos relacionados ao programa."""
     try:
-        result = subprocess.run(['taskkill', '/f', '/t', '/im', f'*{programa_nome}*.exe'], capture_output=True, text=True)
+        result = subprocess.run(['taskkill', '/f', '/t', '/im', f'*{programa_nome}*.exe'], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
         if result.returncode == 0:
             print(f"Processos relacionados a '{programa_nome}' foram terminados.")
             logging.info(f"Processos relacionados a '{programa_nome}' foram terminados.")
@@ -255,7 +249,6 @@ def criar_backup(caminho):
             print(f"Erro ao criar backup: {e}")
     return None
 
-# Funções de limpeza
 def limpeza_profunda(callback=None):
     """Realiza limpeza profunda de arquivos temporários e obsoletos."""
     caminhos_temp = [
@@ -298,7 +291,7 @@ def limpeza_profunda(callback=None):
     try:
         if callback:
             callback(current, total_items, "Lixeira")
-        subprocess.run(['rd', '/s', '/q', 'C:\\$Recycle.Bin'], capture_output=True)
+        subprocess.run(['rd', '/s', '/q', 'C:\\$Recycle.Bin'], capture_output=True, creationflags=subprocess.CREATE_NO_WINDOW)
         removidos += 1
         current += 1
     except Exception as e:
@@ -320,7 +313,6 @@ def limpeza_profunda(callback=None):
     
     return removidos
 
-# Funções de scan
 def varrer_arquivos_residuos_completo(programa_nome):
     """Varre por arquivos residuais em caminhos comuns."""
     caminhos_varredura = [
@@ -356,7 +348,7 @@ def scan_suspeitos():
     suspeitos = []
     # Verificar processos
     try:
-        result = subprocess.run(['tasklist', '/fo', 'csv'], capture_output=True, text=True)
+        result = subprocess.run(['tasklist', '/fo', 'csv'], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
         for line in result.stdout.splitlines()[1:]:
             parts = line.split(',')
             if len(parts) > 1:
@@ -375,7 +367,7 @@ def scan_suspeitos():
 
 def get_cpu():
     try:
-        result = subprocess.run(['wmic', 'cpu', 'get', 'loadpercentage'], capture_output=True, text=True)
+        result = subprocess.run(['wmic', 'cpu', 'get', 'loadpercentage'], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
         lines = result.stdout.strip().split('\n')
         if len(lines) > 1:
             return lines[1].strip()
@@ -385,7 +377,7 @@ def get_cpu():
 
 def get_mem():
     try:
-        result = subprocess.run(['wmic', 'os', 'get', 'freephysicalmemory,totalvisiblememorysize'], capture_output=True, text=True)
+        result = subprocess.run(['wmic', 'os', 'get', 'freephysicalmemory,totalvisiblememorysize'], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
         lines = result.stdout.strip().split('\n')
         if len(lines) > 1:
             parts = lines[1].split()
@@ -400,7 +392,7 @@ def get_mem():
 def get_running_processes():
     """Retorna uma lista de processos em execução."""
     try:
-        result = subprocess.run(['tasklist', '/fo', 'csv'], capture_output=True, text=True)
+        result = subprocess.run(['tasklist', '/fo', 'csv'], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
         processos = [line.split(',')[0].strip('"') for line in result.stdout.splitlines()[1:] if line.split(',')[0].strip('"')]
         return processos
     except:
@@ -413,14 +405,14 @@ def scan_malware(callback=None):
     current = 0
     # Verificar processos
     try:
-        result = subprocess.run(['tasklist', '/fo', 'csv'], capture_output=True, text=True)
+        result = subprocess.run(['tasklist', '/fo', 'csv'], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
         processos = [line.split(',')[0].strip('"') for line in result.stdout.splitlines()[1:] if line.split(',')[0].strip('"')]
         total_items += len(processos)
         for exe_path in processos:
             if callback:
                 callback(current, total_items, exe_path)
             try:
-                result2 = subprocess.run(['where', exe_path], capture_output=True, text=True)
+                result2 = subprocess.run(['where', exe_path], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
                 if result2.returncode == 0:
                     caminho = result2.stdout.strip().split('\n')[0]
                     if os.path.exists(caminho):
@@ -453,7 +445,6 @@ def scan_malware(callback=None):
             current += 1
     return suspeitos
 
-# Funções de relatório
 def gerar_relatorio(programa_nome, oficial_executado, backup_path, residuos):
     """Gera um relatório detalhado da desinstalação."""
     relatorio = f"Relatório de Desinstalação - {programa_nome}\n"
@@ -472,7 +463,6 @@ def gerar_relatorio(programa_nome, oficial_executado, backup_path, residuos):
         f.write(relatorio)
     print("Relatório gerado: relatorio_desinstalacao.txt")
 
-# Classe GUI
 class DesinstaladorGUI:
     def __init__(self, root):
         self.root = root
@@ -496,7 +486,7 @@ class DesinstaladorGUI:
         if item['tipo'] == 'processo':
             if messagebox.askyesno("Remover Malware", f"Matar processo malicioso: {item['nome']}?"):
                 try:
-                    result = subprocess.run(['taskkill', '/f', '/t', '/im', item['nome']], capture_output=True, text=True)
+                    result = subprocess.run(['taskkill', '/f', '/t', '/im', item['nome']], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
                     if result.returncode == 0:
                         self.log(f"Processo '{item['nome']}' terminado.")
                     else:
@@ -789,7 +779,7 @@ class DesinstaladorGUI:
         processo = self.processos[selecao[0]]
         if messagebox.askyesno("Matar Processo", f"Matar {processo}?"):
             try:
-                result = subprocess.run(['taskkill', '/f', '/t', '/im', processo], capture_output=True, text=True)
+                result = subprocess.run(['taskkill', '/f', '/t', '/im', processo], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
                 if result.returncode == 0:
                     self.log(f"Processo '{processo}' terminado com sucesso.")
                     messagebox.showinfo("Sucesso", f"Processo '{processo}' foi terminado.")
