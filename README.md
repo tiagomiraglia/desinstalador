@@ -56,10 +56,10 @@ Um desinstalador avançado para Windows com interface gráfica, desenvolvido em 
 
 ## Geração de Executável
 
-Para criar um executável standalone:
+Para criar um executável standalone sem console:
 
 1. Instale PyInstaller: `pip install pyinstaller`.
-2. Execute: `python -m pyinstaller --onefile desinstalador.py`.
+2. Execute: `python -m pyinstaller --onefile --windowed desinstalador.py`.
 3. O executável será gerado em `desinstalador.exe` (na raiz).
 
 **Nota**: O executável requer privilégios de administrador. Configure um atalho para "Executar como administrador" se desejar.
