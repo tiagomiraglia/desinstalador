@@ -468,6 +468,15 @@ class DesinstaladorGUI:
         self.root = root
         self.root.title("Desinstalador Completo")
         self.root.geometry("1200x600")
+        # Centralizar a janela na tela
+        self.root.update_idletasks()
+        width = 1200
+        height = 600
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
         self.programas = listar_programas_instalados()
         self.processos = get_running_processes()
         self.malware_encontrado = []
